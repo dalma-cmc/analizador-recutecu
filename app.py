@@ -6,8 +6,11 @@ import yt_dlp
 
 st.set_page_config(page_title="Analizador de Comentarios", page_icon="📊", layout="wide")
 
-st.title("📊 Analizador de Comentarios")
-st.caption("Clasificación según ejes del CEL · YouTube automático · TikTok, Instagram y Facebook: pegar o CSV")
+st.markdown(
+    "<h1 style='color:#e10600; text-transform:uppercase; margin-bottom:0;'>Analizador de comentarios</h1>",
+    unsafe_allow_html=True,
+)
+st.caption("YouTube automático · TikTok, Instagram y Facebook: pegar o CSV")
 
 STOPWORDS = set("""
 a al algo algunas algunos ante antes como con contra cual cuando de del desde donde dos el ella ellas ellos en entre era erais eramos eran eres es esa esas ese eso esos esta estaba estaban estas este esto estos estoy fin fue fueron fui ha han has hasta hay la las le les lo los mas me mi mis mucho muy ni no nos o os otra otras otro otros para pero poco por porque que quien se si sin sobre son soy su sus te tu un una unas unos y ya yo http https www com
@@ -161,18 +164,21 @@ with col_p:
 with col_n:
     txt_neg = st.text_area("Negativos", "\n".join(NEGATIVO), height=220)
 with col_u:
-    txt_ins = st.text_area("Insultos (quedan neutros)", "\n".join(INSULTOS), height=110)
-    txt_fel = st.text_area("Felicitaciones (quedan neutras)", "\n".join(FELICITACIONES), height=110)
+    txt_neu = st.text_area(
+        "Neutros (insultos, felicitaciones y emojis)",
+        "\n".join(INSULTOS + FELICITACIONES),
+        height=220,
+    )
 
 def a_lista(texto: str) -> list:
     return [x.strip() for x in texto.splitlines() if x.strip()]
 
 positivos = a_lista(txt_pos)
 negativos = a_lista(txt_neg)
-insultos = a_lista(txt_ins)
-felicitaciones = a_lista(txt_fel)
+neutros = a_lista(txt_neu)
 
-plataforma = st.selectbox("Plataforma", ["YouTube", "TikTok", "Instagram", "Facebook"])
+st.subheader("Plataforma")
+plataforma = st.selectbox("Plataforma", ["YouTube", "TikTok", "Instagram", "Facebook"], label_visibility="collapsed")
 comments = []
 
 if plataforma == "YouTube":
@@ -204,7 +210,7 @@ else:
 if comments:
     filas = []
     for c in comments:
-        clase, motivo = clasificar(c, positivos, negativos, insultos, felicitaciones)
+        clase, motivo = clasificar(c, positivos, negativos, neutros, neutros)
         filas.append({"comentario": c, "clasificacion": clase, "motivo": motivo})
     df = pd.DataFrame(filas)
     orden = {"positivo": 0, "negativo": 1, "neutro": 2}
